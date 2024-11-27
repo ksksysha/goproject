@@ -3,18 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <title>Салон Красоты</title>
+    <title>{{.Title}}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-   
-    {{template "header" .}}
-    
+    <header>
+        <nav>
+            <a href="/">Главная</a>
+            <a href="/about">О нас</a>
+            <a href="/services">Услуги</a>
+           <a href="/contacts">Контакты</a>
+        </nav>
+    </header>
+
     <main>
-        {{block "content" .}} {{end}}
+        <div class="content">
+            {{.Content}}
+        </div>
     </main>
 
-    {{template "footer" .}}
-
+    <footer>
+        <p>&copy; 2024 Салон красоты. Все права защищены.</p>
+    </footer>
 </body>
 </html>
