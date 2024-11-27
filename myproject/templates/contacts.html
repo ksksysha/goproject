@@ -1,19 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Контакты</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-   
-    {{ template "header" }}
-
-    <main>
-        <h2>Наши контактные данные:</h2>
-        <p>Email: contact@example.com</p>
-        <p>Телефон: +1 (234) 567-890</p>
-    </main>
-</body>
-</html>
+{{define "contacts.html"}}
+<h1>Наши контакты</h1>
+<p>Адрес: ул. Примерная 123, Телефон: +7 (123) 456-78-90</p>
+{{end}}
