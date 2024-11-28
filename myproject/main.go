@@ -2,9 +2,12 @@ package main
 
 import (
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Структура для передачи данных в шаблон
@@ -20,7 +23,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data *PageData) {
 	tmplPath := filepath.Join("templates", tmpl)
 
 	// Парсим оба шаблона: layout и нужную страницу
-	tmplContent, err := template.ParseFiles(layoutPath, tmplPath)
+	tmplContent, err := template.ParseFiles(layoutPath, tmplPath, "templates/header.html", "templates/footer.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -33,63 +36,60 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data *PageData) {
 	}
 }
 
-// Обработчик главной страницы
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	data := &PageData{
-		Title:   "Главная страница",
-		Content: "<h1>Добро пожаловать в наш салон красоты!</h1><p>Мы предлагаем широкий спектр услуг для вашего ухода.</p>",
+// Универсальный обработчик для всех страниц
+func pageHandler(w http.ResponseWriter, r *http.Request) {
+	// Получаем имя страницы из URL
+	page := r.URL.Path
+
+	// Если путь пустой, перенаправляем на главную страницу
+	if page == "/" {
+		page = "/home" // По умолчанию главная страница
 	}
-	renderTemplate(w, "home.html", data)
+
+	// Убираем начальный слэш и добавляем .html к имени файла
+	pageFile := strings.TrimPrefix(page, "/") + ".html"
+	fullPath := filepath.Join("templates", pageFile)
+
+	// Проверка наличия HTML-файла
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		// Если файл не найден, перенаправляем на страницу 404
+		notFoundHandler(w, r)
+		return
+	}
+
+	// Читаем содержимое HTML-файла
+	content, err := ioutil.ReadFile(fullPath)
+	if err != nil {
+		http.Error(w, "Ошибка при чтении страницы: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Формируем данные для шаблона
+	data := &PageData{
+		Title:   strings.Title(strings.TrimSuffix(filepath.Base(pageFile), ".html")),
+		Content: template.HTML(content), // Вставляем содержимое файла
+	}
+
+	// Рендерим шаблон
+	renderTemplate(w, pageFile, data)
 }
 
-// Обработчик страницы "О нас"
-func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	data := &PageData{
-		Title:   "О нас",
-		Content: "<h1>Мы - команда профессионалов!</h1><p>Наш салон предлагает только качественные и безопасные процедуры.</p>",
-	}
-	renderTemplate(w, "about.html", data)
-}
-
-// Обработчик страницы "Контакты"
-func contactsHandler(w http.ResponseWriter, r *http.Request) {
-	data := &PageData{
-		Title:   "Контакты",
-		Content: "<h1>Наши контакты</h1><p>Адрес: ул. Примерная 123, Телефон: +7 (123) 456-78-90</p>",
-	}
-	renderTemplate(w, "contacts.html", data)
-}
-
-// Обработчик страницы "Услуги"
-func servicesHandler(w http.ResponseWriter, r *http.Request) {
-	data := &PageData{
-		Title:   "Услуги",
-		Content: "<h1>Наши услуги</h1><p>Маникюр, педикюр, стрижки, укладки и многое другое.</p>",
-	}
-	renderTemplate(w, "services.html", data)
-}
-
-// Обработчик страницы 404
+// Обработчик для 404 ошибки
 func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	data := &PageData{
 		Title:   "404 - Страница не найдена",
-		Content: "<h1>Извините, страница не найдена!</h1>",
+		Content: template.HTML("<h1>Извините, страница не найдена!</h1>"),
 	}
+	w.WriteHeader(http.StatusNotFound)
 	renderTemplate(w, "404.html", data)
 }
 
 func main() {
-	// Регистрация маршрутов
-	http.HandleFunc("/", homeHandler)
-	http.HandleFunc("/about", aboutHandler)
-	http.HandleFunc("/contacts", contactsHandler)
-	http.HandleFunc("/services", servicesHandler)
-
-	// Обработка 404 страницы
-	http.HandleFunc("/404", notFoundHandler)
-
 	// Статические файлы (например, CSS)
-	http.Handle("/css/", http.StripPrefix("/css/", http.FileServer(http.Dir("css"))))
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+
+	// Универсальный обработчик для всех страниц
+	http.HandleFunc("/", pageHandler)
 
 	// Запуск сервера на localhost:8080
 	log.Println("Запуск сервера на http://localhost:8080...")
