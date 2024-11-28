@@ -180,66 +180,92 @@ body {
     line-height: 1.6;
   }
   
-  .contacts-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-    margin: 40px 20px;
-  }
-  
-  .contacts-info {
-    background: #f9f9f9;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    flex: 1;
-    max-width: 400px;
-  }
-  
-  .contacts-info h2 {
-    font-size: 24px;
-    margin-bottom: 20px;
-    color: #333;
-  }
-  
-  .contacts-info ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .contacts-info li {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    font-size: 16px;
-    color: #444;
-  }
-  
-  .contacts-info a {
-    color: #444;
-    text-decoration: none;
-    transition: color 0.3s;
-  }
-  
-  .contacts-info a:hover {
-    color: #ff69b4; /* Розовый акцент */
-  }
-  
-  .contacts-info i {
-    font-size: 20px;
-    margin-right: 10px;
-    color: #ff69b4; /* Розовый акцент */
-  }
-  
-  /* Карта */
-  .contacts-map {
-    flex: 2;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }  
+.contacts-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin: 40px 20px;
+}
+
+.contacts-info {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  max-width: 400px;
+}
+
+.contacts-info h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.contacts-info ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.contacts-info li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: #444;
+}
+
+.contacts-info a {
+  color: #444;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.contacts-info a:hover {
+  color: #ff69b4; /* Розовый акцент */
+}
+
+.contacts-info i {
+  font-size: 20px;
+  margin-right: 10px;
+  color: #ff69b4; /* Розовый акцент */
+}
+
+/* Карта */
+.contacts-map {
+  flex: 2;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Основной контейнер */
+.container_n {
+    text-align: center;
+    padding: 50px;
+}
+
+/* Для больших цифр */
+.big-number {
+    font-size: 150px;  /* Большой размер цифры */
+    font-weight: bold;
+    color: #ff3366;     /* Можно выбрать любой цвет */
+}
+
+/* Стиль для разбитого сердца */
+.heart-broken {
+    font-size: 150px;   /* Подогнать размер для сердца */
+    display: inline-block;
+    width: 100px;       /* Размер изображения */
+    height: 100px;
+    background: url('heart.png') no-repeat center center;
+    background-size: contain;  /* Уменьшаем размер картинки, чтобы она хорошо вписывалась */
+}
+
+
+
 
   /* Адаптивный дизайн для мобильных устройств */
   @media (max-width: 768px) {
