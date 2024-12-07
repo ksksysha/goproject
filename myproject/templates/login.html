@@ -1,0 +1,17 @@
+{{define "content"}}
+<div class="container"> 
+    <h1>Вход</h1> 
+    <form action="/login" method="post"> 
+        <div class="input-group"> 
+            <span class="input-group-addon"><i class="fas fa-user"></i></span> 
+            <input type="text" id="username" name="username" placeholder="Имя пользователя" required> 
+        </div> 
+        <div class="input-group"> 
+            <span class="input-group-addon"><i class="fas fa-lock"></i></span> 
+            <input type="password" id="password" name="password" placeholder="Пароль" required> 
+        </div> 
+        <button type="submit">Войти</button> 
+    </form> 
+    <p><a href="/">Вернуться на главную страницу</a></p> 
+</div> 
+{{end}}

@@ -4,9 +4,9 @@ body {
     margin: 0;
     padding: 0;
     color: #444; /* Менее насыщенный чёрный */
-    background-color: #fff;
+    background-color: #e9e9e9;
     line-height: 1.6;
-    padding: 20px; /* Отступы от краёв страницы */
+    padding: 30px; /* Отступы от краёв страницы */
     box-sizing: border-box;
   }
   
@@ -249,9 +249,9 @@ body {
 
 /* Для больших цифр */
 .big-number {
-    font-size: 150px;  /* Большой размер цифры */
+    font-size: 250px;  /* Большой размер цифры */
     font-weight: bold;
-    color: #ff3366;     /* Можно выбрать любой цвет */
+    color: #282727;     /* Можно выбрать любой цвет */
 }
 
 /* Стиль для разбитого сердца */
@@ -264,30 +264,76 @@ body {
     background-size: contain;  /* Уменьшаем размер картинки, чтобы она хорошо вписывалась */
 }
 
+.services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center; /* Центрирование карточек */
+
+}
+.service {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: calc(33.33% - 20px);
+  padding: 15px;
+  text-align: center;
+}
+
+.service img {
+  width: 100%; /* Изображение всегда занимает полную ширину карточки */
+  height: 350px; /* Увеличиваем высоту для получения вертикального вида */
+  border-radius: 8px 8px 0 0;
+  object-fit: cover; /* Делаем так, чтобы изображение подгонялось под размеры, не теряя пропорции */
+}
+
+.service h3 {
+  margin: 10px 0 10px;
+}
+.service p {
+  color: #666;}
 
 
 
   /* Адаптивный дизайн для мобильных устройств */
-  @media (max-width: 768px) {
+@media (max-width: 768px) {
     .image-text-container {
       flex-direction: column; /* Перестраиваем элементы в колонку */
       text-align: center; /* Центрируем текст */
-    }
+}
   
-    .image-text-container img {
-      max-width: 100%; /* Изображение занимает всю ширину */
-    }
+.image-text-container img {
+  max-width: 100%; /* Изображение занимает всю ширину */
+}
 
-    .tab-button {
-        width: 100%;
-        margin: 5px 0;
-      }
+.tab-button {
+  width: 100%;
+  margin: 5px 0;
+}
     
-      nav a {
-        display: block;
-        margin: 10px 0;
-      }
+nav a {
+  display: block;
+  margin: 10px 0;}
+}
 
-  }
+
+
+.input-group { 
+  position: relative; 
+  margin-bottom: 15px; 
+ } 
   
+ .input-group-addon { 
+  position: absolute; 
+  left: 10px; 
+  top: 50%; 
+  transform: translateY(-50%); 
+  color: #888; 
+ } 
   
+ input { 
+  padding-left: 30px; /* Отступ для иконки */ 
+  width: 100%; 
+  padding: 10px; 
+  box-sizing: border-box; 
+ } 

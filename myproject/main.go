@@ -2,7 +2,7 @@ package main
 
 import (
 	"html/template"
-	"io/ioutil"
+	"io/ioutil" // Исправлено здесь, убрали "so"
 	"log"
 	"net/http"
 	"os"
@@ -18,6 +18,8 @@ type PageData struct {
 
 // Функция для рендеринга шаблонов
 func renderTemplate(w http.ResponseWriter, tmpl string, data *PageData) {
+	log.Println("Rendering template:", tmpl)
+
 	// Указываем путь к шаблонам
 	layoutPath := filepath.Join("templates", "layout.html")
 	tmplPath := filepath.Join("templates", tmpl)
@@ -29,7 +31,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data *PageData) {
 		return
 	}
 
-	// Рендерим основной шаблон (layout.html) с данными
+	// Рендерим основной шаблон с данными
 	err = tmplContent.Execute(w, data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -38,12 +40,11 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data *PageData) {
 
 // Универсальный обработчик для всех страниц
 func pageHandler(w http.ResponseWriter, r *http.Request) {
-	// Получаем имя страницы из URL
 	page := r.URL.Path
 
 	// Если путь пустой, перенаправляем на главную страницу
 	if page == "/" {
-		page = "/home" // По умолчанию главная страница
+		page = "/home"
 	}
 
 	// Убираем начальный слэш и добавляем .html к имени файла
@@ -52,8 +53,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Проверка наличия HTML-файла
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		// Если файл не найден, перенаправляем на страницу 404
-		notFoundHandler(w, r)
+		notFoundHandler(w, r) // Если файл не найден
 		return
 	}
 
@@ -70,7 +70,6 @@ func pageHandler(w http.ResponseWriter, r *http.Request) {
 		Content: template.HTML(content), // Вставляем содержимое файла
 	}
 
-	// Рендерим шаблон
 	renderTemplate(w, pageFile, data)
 }
 
@@ -84,12 +83,24 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	renderTemplate(w, "404.html", data)
 }
 
+// Отображение страницы входа
+func loginPageHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("Login handler invoked, method:", r.Method)
+
+	data := &PageData{
+		Title:   "Вход",
+		Content: template.HTML(""), // В контенте ничего нет, всё на странице login.html
+	}
+	renderTemplate(w, "login.html", data) // Обратите внимание, мы вызываем 'renderTemplate' с 'login.html'
+}
+
 func main() {
 	// Статические файлы (например, CSS)
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
 
-	// Универсальный обработчик для всех страниц
+	// Обработчики
 	http.HandleFunc("/", pageHandler)
+	http.HandleFunc("/login", loginPageHandler)
 
 	// Запуск сервера на localhost:8080
 	log.Println("Запуск сервера на http://localhost:8080...")
