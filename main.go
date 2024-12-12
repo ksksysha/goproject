@@ -1,162 +1,173 @@
 package main
 
 import (
+	"database/sql"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+
+	_ "github.com/lib/pq"
+	"golang.org/x/crypto/bcrypt"
 )
 
-// Структура для передачи данных в шаблон
-type PageData struct {
-	Title        string
-	Content      template.HTML
-	ErrorMessage string // Добавляем поле для сообщения об ошибке
-}
-
-// Здесь вы можете изменить имя пользователя и пароль
 var (
+	// Данные для подключения к базе данных PostgreSQL
+	db *sql.DB
+	// Данные для логина
 	validUsername = "user"
 	validPassword = "password"
 )
 
-// Функция для рендеринга шаблонов
+type PageData struct {
+	Title        string
+	Content      template.HTML
+	ErrorMessage string
+	Username     string
+}
+
+func init() {
+	var err error
+	// Замените на ваши данные
+	connStr := "host=localhost port=5432 user=postgres password=0000 dbname=myproject sslmode=disable"
+	db, err = sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal("Ошибка подключения к базе данных:", err)
+	}
+
+	// Проверка соединения
+	if err = db.Ping(); err != nil {
+		log.Fatal("Не удалось подключиться к базе данных:", err)
+	}
+	log.Println("Подключение к базе данных успешно!")
+}
+
 func renderTemplate(w http.ResponseWriter, tmpl string, data *PageData) {
 	layoutPath := filepath.Join("templates", "layout.html")
 	tmplPath := filepath.Join("templates", tmpl)
 
-	// Парсим шаблоны
-	tmplContent, err := template.ParseFiles(layoutPath, tmplPath)
+	// Загружаем layout и текущий шаблон
+	content, err := os.ReadFile(tmplPath) // Читаем содержимое текущего шаблона
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Ошибка чтения шаблона: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = tmplContent.Execute(w, data)
+	data.Content = template.HTML(content) // Вставляем HTML-контент в структуру PageData
+
+	tmplContent, err := template.ParseFiles(layoutPath)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-// Универсальный обработчик для всех страниц
-func pageHandler(w http.ResponseWriter, r *http.Request) {
-	page := r.URL.Path
-
-	if page == "/" {
-		page = "/home"
-	}
-
-	pageFile := strings.TrimPrefix(page, "/") + ".html"
-	fullPath := filepath.Join("templates", pageFile)
-
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		notFoundHandler(w, r)
+		http.Error(w, "Ошибка загрузки layout: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	content, err := ioutil.ReadFile(fullPath)
+	// Выполняем рендеринг layout
+	err = tmplContent.ExecuteTemplate(w, "layout", data)
 	if err != nil {
-		http.Error(w, "Ошибка при чтении страницы: "+err.Error(), http.StatusInternalServerError)
-		return
+		http.Error(w, "Ошибка рендеринга шаблона: "+err.Error(), http.StatusInternalServerError)
 	}
-
-	data := &PageData{
-		Title:   strings.Title(strings.TrimSuffix(filepath.Base(pageFile), ".html")),
-		Content: template.HTML(content),
-	}
-
-	renderTemplate(w, pageFile, data)
 }
 
-// Обработчик для 404 ошибки
-func notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	data := &PageData{
-		Title:   "404 - Страница не найдена",
-		Content: template.HTML("<h1>Извините, страница не найдена!</h1>"),
-	}
-	w.WriteHeader(http.StatusNotFound)
-	renderTemplate(w, "404.html", data)
-}
-
-// Обработчик для страницы входа
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	var data PageData
-	data.Title = "Вход"
+	data := PageData{Title: "Вход"}
 
 	if r.Method == http.MethodPost {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
-		if username == validUsername && password == validPassword {
-			// Успешный вход
-			http.Redirect(w, r, "/home", http.StatusSeeOther)
-			return
+		// Получаем хэш пароля из БД
+		var dbPassword string
+		err := db.QueryRow("SELECT password FROM users WHERE username=$1", username).Scan(&dbPassword)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				data.ErrorMessage = "Неверный логин или пароль"
+			} else {
+				data.ErrorMessage = "Ошибка при подключении к базе данных"
+			}
 		} else {
-			// Неверный логин или пароль
-			data.ErrorMessage = "Неверный логин или пароль"
+			// Сравниваем хэш с паролем
+			err = bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password))
+			if err == nil {
+				http.Redirect(w, r, "/profile", http.StatusSeeOther)
+				return
+			} else {
+				data.ErrorMessage = "Неверный логин или пароль"
+			}
 		}
 	}
-
-	// Отображаем страницу входа с формой
-	data.Content = template.HTML(`
-<h2>Вход</h2>
-<form action="/login" method="POST">
-<label for="username">Имя пользователя:</label>
-<input type="text" id="username" name="username" required>
-<label for="password">Пароль:</label>
-<input type="password" id="password" name="password" required>
-<input type="submit" value="Войти">
-</form>
-<p>Нет аккаунта? <a href="/register">Зарегистрируйтесь</a></p>
-`)
 
 	renderTemplate(w, "login.html", &data)
 }
 
-// Обработчик для страницы регистрации
 func registerHandler(w http.ResponseWriter, r *http.Request) {
+	data := PageData{Title: "Регистрация"}
+
 	if r.Method == http.MethodPost {
-		// Здесь можно обработать данные формы (например, сохранить в БД).
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+
+		// Хэшируем пароль
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			data.ErrorMessage = "Ошибка при хэшировании пароля"
+			renderTemplate(w, "register.html", &data)
+			return
+		}
+
+		// Сохраняем в базе
+		_, err = db.Exec("INSERT INTO users (username, password) VALUES ($1, $2)", username, hashedPassword)
+		if err != nil {
+			data.ErrorMessage = "Ошибка при регистрации: пользователь уже существует"
+		} else {
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
+		}
 	}
 
-	// Отображаем страницу регистрации
-	data := &PageData{
-		Title: "Регистрация",
-		Content: template.HTML(`<h2>Регистрация</h2>
-<form action="/register" method="POST">
-<label for="username">Имя пользователя:</label>
-<input type="text" id="username" name="username" required>
-<label for="password">Пароль:</label>
-<input type="password" id="password" name="password" required>
-<input type="submit" value="Зарегистрироваться">
-</form>
-<p>Уже есть аккаунт? <a href="/login">Войдите</a></p>`),
-	}
-	renderTemplate(w, "register.html", data)
+	renderTemplate(w, "register.html", &data)
 }
 
-// Обработчик для главной страницы
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	data := &PageData{
-		Title:   "Главная",
-		Content: template.HTML("<h1>Добро пожаловать на главную страницу!</h1>"),
+func profileHandler(w http.ResponseWriter, r *http.Request) {
+	data := PageData{
+		Title:    "Личный кабинет",
+		Username: "Ваше имя пользователя",
 	}
-	renderTemplate(w, "home.html", data)
 
+	renderTemplate(w, "profile.html", &data)
 }
 
 func main() {
-	// Обработчики для статических файлов
+	// Обработчик для статических файлов
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
-	http.HandleFunc("/login", loginHandler)       // Обработчик входа
-	http.HandleFunc("/register", registerHandler) // Обработчик для регистрации
-	http.HandleFunc("/home", homeHandler)         // Обработчик для главной страницы
-	http.HandleFunc("/", pageHandler)             // Обработчик для других страниц
+
+	// Обработчики страниц
+	http.HandleFunc("/login", loginHandler)
+	http.HandleFunc("/register", registerHandler)
+	http.HandleFunc("/profile", profileHandler)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		page := r.URL.Path
+		if page == "/" {
+			page = "/home"
+		}
+
+		pageFile := strings.TrimPrefix(page, "/") + ".html"
+		fullPath := filepath.Join("templates", pageFile)
+
+		content, err := os.ReadFile(fullPath)
+		if err != nil {
+			http.Error(w, "Ошибка при чтении страницы: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		data := &PageData{
+			Title:   strings.Title(strings.TrimSuffix(filepath.Base(pageFile), ".html")),
+			Content: template.HTML(content),
+		}
+
+		renderTemplate(w, pageFile, data)
+	})
 
 	log.Println("Запуск сервера на http://localhost:8080...")
 	err := http.ListenAndServe(":8080", nil)
