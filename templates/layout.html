@@ -17,14 +17,19 @@
             <a href="/services">Услуги</a>
             <a href="/about">О нас</a>
             <a href="/contacts">Контакты</a>
-            <a href="/login">Вход</a>
-            <a href="/register">Регистрация</a>
+            {{if .Username}}
+                <a href="/profile">Профиль</a>
+                <a href="/logout">Выход</a>
+            {{else}}
+                <a href="/login">Вход</a>
+                <a href="/register">Регистрация</a>
+            {{end}}
         </nav>
     </header>
 
     <main>
         <div class="content">
-            {{.Content}}
+            {{template "content" .}}
         </div>
     </main>
 

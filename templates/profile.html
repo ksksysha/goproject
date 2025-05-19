@@ -23,6 +23,7 @@
 
     <main>
 
+{{define "content"}}
 <h1>Добро пожаловать, {{.Username}}!</h1>
 
 <h2>Записаться на услугу</h2>
@@ -52,16 +53,23 @@
 <ul>
     {{if .Bookings}}
         {{range .Bookings}}
-            <li>{{.ServiceName}} - {{.BookingTime}}</li>
+            <li>
+                {{.Service.Name}} - {{.Date}}
+                <form method="POST" action="/delete-user-booking" style="display:inline;">
+                    <input type="hidden" name="id" value="{{.ID}}">
+                    <button type="submit" onclick="return confirm('Вы уверены, что хотите удалить запись?');">Удалить</button>
+                </form>
+            </li>
         {{end}}
     {{else}}
         <p>У вас нет записей.</p>
     {{end}}
 </ul>
 
+<p><a href="/">Назад на главную</a></p>
+<p><a href="/logout">Выйти</a></p>
+{{end}}
 
-<p><a href="/">Назад на главную</a></p> 
-<p><a href="/logout">Выйти</a></p> 
 </main>
 
 <footer>
