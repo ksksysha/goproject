@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Title}}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/assets/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="/assets/scripts.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/">Главная</a>
+            <a href="/services">Услуги</a>
+            <a href="/about">О нас</a>
+            <a href="/contacts">Контакты</a>
+            <a href="/login">Вход</a>
+            <a href="/register">Регистрация</a>
+        </nav>
+    </header>
+
+    <main>
+<h1>Админ-панель</h1>
+<table border="1">
+    <tr>
+        <th>Пользователь</th>
+        <th>Услуга</th>
+        <th>Время записи</th>
+        <th>Статус</th>
+        <th>Действие</th>
+    </tr>
+    {{range .Bookings}}
+    <tr {{if .IsExpired}}class="expired"{{end}}>
+        <td>{{.Username}}</td>
+        <td>{{.ServiceName}}</td>
+        <td>{{.BookingTime}}</td>
+        <td>{{if .IsExpired}}Просрочено{{else}}Активно{{end}}</td>
+        <td>
+            <form method="POST" action="/delete-booking">
+                <input type="hidden" name="booking_id" value="{{.ID}}">
+                <button type="submit">Удалить</button>
+            </form>
+        </td>
+    </tr>
+    {{end}}
+</table>
+
+<p><a href="/">На главную</a></p> 
+<p><a href="/logout">Выйти</a></p>
+</main>
+
+<footer>
+    <p>&copy; 2024 Салон красоты. Все права защищены.</p>
+</footer>
+</body>
+</html>
