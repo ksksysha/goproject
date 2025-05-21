@@ -4,7 +4,6 @@ import (
 	"myproject/internal/model"
 	"myproject/internal/session"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 )
@@ -30,25 +29,10 @@ func PageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Проверяем, что запрашивается только HTML-страница
-	if !strings.HasSuffix(page, ".html") {
-		page = page + ".html"
-	}
-
-	pageFile := strings.TrimPrefix(page, "/")
-	fullPath := getTemplatePath(pageFile)
-
-	// Проверяем существование файла
-	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
-		http.NotFound(w, r)
-		return
-	}
-
-	// Читаем содержимое файла
-	content, err := os.ReadFile(fullPath)
-	if err != nil {
-		http.Error(w, "Ошибка чтения файла", http.StatusInternalServerError)
-		return
+	// Получаем имя файла шаблона
+	pageFile := strings.TrimPrefix(page, "/") + ".html"
+	if !strings.HasSuffix(pageFile, ".html") {
+		pageFile = pageFile + ".html"
 	}
 
 	// Получаем имя страницы для заголовка
@@ -58,11 +42,17 @@ func PageHandler(w http.ResponseWriter, r *http.Request) {
 		title = "Главная"
 	}
 
+	// Получаем данные сессии
+	sess, _ := session.Store.Get(r, "session-name")
+	username, _ := sess.Values["username"].(string)
+	role, _ := sess.Values["role"].(string)
+
 	// Создаем данные для шаблона
 	data := &model.PageData{
-		Title:   title + " - Салон красоты",
-		Content: string(content),
-		UserID:  session.GetUserID(r),
+		Title:    title + " - Салон красоты",
+		Username: username,
+		Role:     role,
+		UserID:   session.GetUserID(r),
 	}
 
 	// Рендерим шаблон

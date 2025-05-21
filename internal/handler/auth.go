@@ -2,6 +2,7 @@ package handler
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 
 	"myproject/internal/model"
@@ -22,19 +23,35 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 		username := r.FormValue("username")
 		password := r.FormValue("password")
 
+		log.Printf("Попытка входа пользователя: %s", username)
+
 		user, err := repository.GetUserByCredentials(db, username, password)
 		if err != nil || user == nil {
+			log.Printf("Ошибка аутентификации для пользователя %s: %v", username, err)
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
+
+		log.Printf("Успешная аутентификация пользователя %s с ролью %s", username, user.Role)
 
 		sess, _ := session.Store.Get(r, "session-name")
 		sess.Values["username"] = user.Username
 		sess.Values["role"] = user.Role
 		sess.Values[session.UserIDKey] = user.ID
-		sess.Save(r, w)
+		err = sess.Save(r, w)
+		if err != nil {
+			log.Printf("Ошибка сохранения сессии: %v", err)
+			http.Error(w, "Ошибка сохранения сессии", http.StatusInternalServerError)
+			return
+		}
 
-		http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		log.Printf("Сессия сохранена, перенаправление пользователя %s на %s", username, user.Role)
+
+		if user.Role == "admin" {
+			http.Redirect(w, r, "/admin", http.StatusSeeOther)
+		} else {
+			http.Redirect(w, r, "/profile", http.StatusSeeOther)
+		}
 	}
 }
 
@@ -62,9 +79,10 @@ func RegisterHandler(db *sql.DB) http.HandlerFunc {
 }
 
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	sess, _ := session.Store.Get(r, "session")
+	sess, _ := session.Store.Get(r, "session-name")
 	delete(sess.Values, "username")
 	delete(sess.Values, "role")
+	delete(sess.Values, session.UserIDKey)
 	sess.Save(r, w)
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }

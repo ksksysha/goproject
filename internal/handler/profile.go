@@ -56,6 +56,12 @@ func ProfileHandler(db *sql.DB) http.HandlerFunc {
 			Bookings: bookings,
 			Services: services,
 		}
+
+		// Если передан service_id в URL, добавляем его в данные
+		if serviceID := r.URL.Query().Get("service_id"); serviceID != "" {
+			data.SelectedServiceID = serviceID
+		}
+
 		RenderTemplate(w, "profile.html", data, true)
 	}
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"myproject/internal/config"
 	"myproject/internal/handler"
@@ -10,6 +11,13 @@ import (
 )
 
 func main() {
+	// Настраиваем логгер
+	log.SetOutput(os.Stdout)
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+	log.Println("Запуск сервера...")
+
+	// Инициализация базы данных
+	log.Println("Подключение к базе данных...")
 	db := config.InitDB()
 	defer db.Close()
 

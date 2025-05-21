@@ -2,6 +2,7 @@ package handler
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -17,28 +18,51 @@ func BookServiceHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		sess, _ := session.Store.Get(r, "session")
-		username, _ := sess.Values["username"].(string)
-
-		serviceID, err := strconv.Atoi(r.FormValue("service"))
+		sess, err := session.Store.Get(r, "session-name")
 		if err != nil {
+			log.Printf("Ошибка получения сессии: %v", err)
+			http.Error(w, "Ошибка сессии", http.StatusInternalServerError)
+			return
+		}
+
+		username, ok := sess.Values["username"].(string)
+		if !ok {
+			log.Printf("Ошибка получения username из сессии")
+			http.Error(w, "Ошибка авторизации", http.StatusUnauthorized)
+			return
+		}
+
+		serviceID, err := strconv.Atoi(r.FormValue("service_id"))
+		if err != nil {
+			log.Printf("Ошибка преобразования service_id: %v", err)
 			http.Error(w, "Неверный ID услуги", http.StatusBadRequest)
 			return
 		}
-		date := r.FormValue("date")
+
+		bookingTime := r.FormValue("booking_time")
+		if bookingTime == "" {
+			log.Printf("Пустое время записи")
+			http.Error(w, "Необходимо указать время записи", http.StatusBadRequest)
+			return
+		}
+
+		log.Printf("Попытка создания записи: username=%s, service_id=%d, booking_time=%s", 
+			username, serviceID, bookingTime)
 
 		booking := model.Booking{
-			Username:  username,
-			ServiceID: serviceID,
-			Date:      date,
+			Username:    username,
+			ServiceID:   serviceID,
+			BookingTime: bookingTime,
 		}
 
 		err = repository.CreateBooking(db, booking)
 		if err != nil {
-			http.Error(w, "Ошибка записи", http.StatusInternalServerError)
+			log.Printf("Ошибка создания записи: %v", err)
+			http.Error(w, "Ошибка записи: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
+		log.Printf("Запись успешно создана для пользователя %s", username)
 		http.Redirect(w, r, "/profile", http.StatusSeeOther)
 	}
 }

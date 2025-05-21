@@ -1,44 +1,169 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Title}}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="/assets/style.css">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <script src="/assets/scripts.js"></script>
-</head>
-<body>
-    <header>
-        <nav>
-            <a href="/">Главная</a>
-            <a href="/services">Услуги</a>
-            <a href="/about">О нас</a>
-            <a href="/contacts">Контакты</a>
-            <a href="/login">Вход</a>
-            <a href="/register">Регистрация</a>
-        </nav>
-    </header>
+{{define "content"}}
+<style>
+    .expired {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+    th, td {
+        padding: 10px;
+        text-align: left;
+    }
+    th {
+        background-color: #f5f5f5;
+    }
+    button {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 2px;
+    }
+    button.edit {
+        background-color: #28a745;
+    }
+    button.edit:hover {
+        background-color: #218838;
+    }
+    button:hover {
+        background-color: #c82333;
+    }
+    .edit-form {
+        display: none;
+        margin-top: 10px;
+    }
+    .edit-form.active {
+        display: block;
+    }
+    .create-booking-form {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .create-booking-form h2 {
+        margin-top: 0;
+        margin-bottom: 15px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+    }
+    .form-group select,
+    .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    .form-group button {
+        background-color: #28a745;
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+    }
+    .status-select {
+        padding: 5px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    .status-pending {
+        color: #856404;
+        background-color: #fff3cd;
+    }
+    .status-confirmed {
+        color: #155724;
+        background-color: #d4edda;
+    }
+    .status-cancelled {
+        color: #721c24;
+        background-color: #f8d7da;
+    }
+    .status-completed {
+        color: #004085;
+        background-color: #cce5ff;
+    }
+</style>
 
-    <main>
 <h1>Админ-панель</h1>
-<table border="1">
+
+<div class="create-booking-form">
+    <h2>Создать новую запись</h2>
+    <form method="POST" action="/admin/create-booking">
+        <div class="form-group">
+            <label for="username">Пользователь:</label>
+            <select name="username" id="username" required>
+                <option value="">Выберите пользователя</option>
+                {{range .Users}}
+                    <option value="{{.Username}}">{{.Username}}</option>
+                {{end}}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="service_id">Услуга:</label>
+            <select name="service_id" id="service_id" required>
+                <option value="">Выберите услугу</option>
+                {{range .Services}}
+                    <option value="{{.ID}}">{{.Name}} - {{.Price}} руб.</option>
+                {{end}}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="booking_time">Время записи:</label>
+            <input type="datetime-local" name="booking_time" id="booking_time" required>
+        </div>
+        <button type="submit" class="edit">Создать запись</button>
+    </form>
+</div>
+
+<h2>Существующие записи</h2>
+<table>
     <tr>
         <th>Пользователь</th>
         <th>Услуга</th>
         <th>Время записи</th>
         <th>Статус</th>
-        <th>Действие</th>
+        <th>Действия</th>
     </tr>
     {{range .Bookings}}
     <tr {{if .IsExpired}}class="expired"{{end}}>
         <td>{{.Username}}</td>
-        <td>{{.ServiceName}}</td>
-        <td>{{.BookingTime}}</td>
-        <td>{{if .IsExpired}}Просрочено{{else}}Активно{{end}}</td>
+        <td>{{.Service.Name}}</td>
         <td>
-            <form method="POST" action="/delete-booking">
+            <div class="booking-time">{{.BookingTime}}</div>
+            <div class="edit-form" id="edit-form-{{.ID}}">
+                <form method="POST" action="/admin/edit-booking" class="edit-booking-form">
+                    <input type="hidden" name="booking_id" value="{{.ID}}">
+                    <input type="datetime-local" name="new_booking_time" value="{{.BookingTime}}" required>
+                    <button type="submit" class="edit">Сохранить</button>
+                    <button type="button" onclick="toggleEditForm({{.ID}})" class="edit">Отмена</button>
+                </form>
+            </div>
+        </td>
+        <td>
+            <form method="POST" action="/admin/update-status" class="status-form">
+                <input type="hidden" name="booking_id" value="{{.ID}}">
+                <select name="status" class="status-select status-{{.Status}}" onchange="this.form.submit()">
+                    <option value="pending" {{if eq .Status "pending"}}selected{{end}}>Ожидает</option>
+                    <option value="confirmed" {{if eq .Status "confirmed"}}selected{{end}}>Подтверждено</option>
+                    <option value="cancelled" {{if eq .Status "cancelled"}}selected{{end}}>Отменено</option>
+                    <option value="completed" {{if eq .Status "completed"}}selected{{end}}>Завершено</option>
+                </select>
+            </form>
+        </td>
+        <td>
+            <button onclick="toggleEditForm({{.ID}})" class="edit">Изменить время</button>
+            <form method="POST" action="/delete-booking" style="display:inline;">
                 <input type="hidden" name="booking_id" value="{{.ID}}">
                 <button type="submit">Удалить</button>
             </form>
@@ -47,12 +172,20 @@
     {{end}}
 </table>
 
-<p><a href="/">На главную</a></p> 
-<p><a href="/logout">Выйти</a></p>
-</main>
+<script>
+function toggleEditForm(bookingId) {
+    const form = document.getElementById(`edit-form-${bookingId}`);
+    form.classList.toggle('active');
+}
 
-<footer>
-    <p>&copy; 2024 Салон красоты. Все права защищены.</p>
-</footer>
-</body>
-</html>
+// Обновляем стили статуса при изменении
+document.querySelectorAll('.status-select').forEach(select => {
+    select.addEventListener('change', function() {
+        this.className = `status-select status-${this.value}`;
+    });
+});
+</script>
+
+<p><a href="/">На главную</a></p>
+<p><a href="/logout">Выйти</a></p>
+{{end}} 

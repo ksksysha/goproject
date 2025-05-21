@@ -18,7 +18,11 @@
             <a href="/about">О нас</a>
             <a href="/contacts">Контакты</a>
             {{if .Username}}
-                <a href="/profile">Профиль</a>
+                {{if eq .Role "admin"}}
+                    <a href="/admin">Панель</a>
+                {{else}}
+                    <a href="/profile">Профиль</a>
+                {{end}}
                 <a href="/logout">Выход</a>
             {{else}}
                 <a href="/login">Вход</a>
