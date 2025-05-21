@@ -1,0 +1,59 @@
+{{define "content"}}
+<style>
+    .expired {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+    th, td {
+        padding: 10px;
+        text-align: left;
+    }
+    th {
+        background-color: #f5f5f5;
+    }
+    button {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #c82333;
+    }
+</style>
+
+<h1>Админ-панель</h1>
+<table>
+    <tr>
+        <th>Пользователь</th>
+        <th>Услуга</th>
+        <th>Время записи</th>
+        <th>Статус</th>
+        <th>Действие</th>
+    </tr>
+    {{range .Bookings}}
+    <tr {{if .IsExpired}}class="expired"{{end}}>
+        <td>{{.Username}}</td>
+        <td>{{.Service.Name}}</td>
+        <td>{{.BookingTime}}</td>
+        <td>{{if .IsExpired}}Просрочено{{else}}Активно{{end}}</td>
+        <td>
+            <form method="POST" action="/delete-booking">
+                <input type="hidden" name="booking_id" value="{{.ID}}">
+                <button type="submit">Удалить</button>
+            </form>
+        </td>
+    </tr>
+    {{end}}
+</table>
+
+<p><a href="/">На главную</a></p>
+<p><a href="/logout">Выйти</a></p>
+{{end}} 

@@ -1,0 +1,17 @@
+<div class="auth-container">
+    <div class="auth-box">
+        <h2>Вход</h2>
+        <form method="POST" action="/login">
+            <div class="input-group">
+                <span class="input-icon"><i class="fas fa-user"></i></span>
+                <input type="text" name="username" placeholder="Имя пользователя" required>
+            </div>
+            <div class="input-group">
+                <span class="input-icon"><i class="fas fa-lock"></i></span>
+                <input type="password" name="password" placeholder="Пароль" required>
+            </div>
+            <button type="submit" class="auth-button">Войти</button>
+            <p>Нет аккаунта? <a href="/register">Зарегистрируйтесь</a></p>
+        </form>
+    </div>
+</div>

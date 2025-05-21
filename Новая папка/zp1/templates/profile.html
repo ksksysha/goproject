@@ -1,0 +1,92 @@
+{{define "content"}}
+<h1>Добро пожаловать, {{.Username}}!</h1>
+
+<h2>Записаться на услугу</h2>
+
+{{if .Categories}}
+    <form action="/book" method="post" id="bookingForm">
+        <div class="form-group">
+            <label for="category">Выберите категорию:</label>
+            <select name="category" id="category" onchange="updateServices()" required>
+                <option value="">Выберите категорию</option>
+                {{range .Categories}}
+                    <option value="{{.Slug}}">{{.Name}}</option>
+                {{end}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="service_id">Выберите услугу:</label>
+            <select name="service_id" id="service_id" required disabled>
+                <option value="">Сначала выберите категорию</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="booking_time">Время записи:</label>
+            <input type="datetime-local" name="booking_time" id="booking_time" required>
+        </div>
+
+        <button type="submit">Записаться</button>
+    </form>
+
+    <script>
+        function updateServices() {
+            const categorySelect = document.getElementById('category');
+            const serviceSelect = document.getElementById('service_id');
+            const selectedCategory = categorySelect.value;
+
+            if (!selectedCategory) {
+                serviceSelect.innerHTML = '<option value="">Сначала выберите категорию</option>';
+                serviceSelect.disabled = true;
+                return;
+            }
+
+            // Очищаем текущие опции
+            serviceSelect.innerHTML = '<option value="">Загрузка...</option>';
+            serviceSelect.disabled = true;
+
+            // Загружаем услуги для выбранной категории
+            fetch(`/api/services/${selectedCategory}`)
+                .then(response => response.json())
+                .then(services => {
+                    serviceSelect.innerHTML = '<option value="">Выберите услугу</option>';
+                    services.forEach(service => {
+                        const option = document.createElement('option');
+                        option.value = service.id;
+                        option.textContent = `${service.name} - ${service.price} руб.`;
+                        serviceSelect.appendChild(option);
+                    });
+                    serviceSelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке услуг:', error);
+                    serviceSelect.innerHTML = '<option value="">Ошибка загрузки услуг</option>';
+                });
+        }
+    </script>
+{{else}}
+    <p>Услуги временно недоступны.</p>
+{{end}}
+
+<h3>Мои записи:</h3>
+
+<ul>
+    {{if .Bookings}}
+        {{range .Bookings}}
+            <li>
+                {{.Service.Name}} ({{.Service.Category.Name}}) - {{.BookingTime}}
+                <form method="POST" action="/delete-user-booking" style="display:inline;">
+                    <input type="hidden" name="booking_id" value="{{.ID}}">
+                    <button type="submit" onclick="return confirm('Вы уверены, что хотите удалить запись?');">Удалить</button>
+                </form>
+            </li>
+        {{end}}
+    {{else}}
+        <p>У вас нет записей.</p>
+    {{end}}
+</ul>
+
+<p><a href="/">Назад на главную</a></p>
+<p><a href="/logout">Выйти</a></p>
+{{end}} 
