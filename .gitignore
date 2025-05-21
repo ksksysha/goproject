@@ -38,4 +38,10 @@ ENV/
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db 
+Thumbs.db
+
+# Go
+*.o
+
+# Ada Library Information
+*.ali
