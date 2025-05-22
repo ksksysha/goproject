@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"net/http"
 
-	"myproject/internal/model"
-	"myproject/internal/repository"
-	"myproject/internal/session"
+	"mygoproject/internal/model"
+	"mygoproject/internal/repository"
+	"mygoproject/internal/session"
 )
 
 func ProfileHandler(db *sql.DB) http.HandlerFunc {

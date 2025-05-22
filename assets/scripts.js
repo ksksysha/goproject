@@ -26,5 +26,8 @@ document.querySelectorAll('.tab-button').forEach(button => {
     });
   });
   
-
+function bookService(serviceId) {
+    // Перенаправляем на страницу профиля с выбранной услугой
+    window.location.href = `/profile?service_id=${serviceId}`;
+}
   

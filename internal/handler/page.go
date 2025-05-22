@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"myproject/internal/model"
-	"myproject/internal/session"
+	"mygoproject/internal/model"
+	"mygoproject/internal/session"
 	"net/http"
 	"path/filepath"
 	"strings"

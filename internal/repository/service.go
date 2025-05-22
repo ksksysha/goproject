@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-	"myproject/internal/model"
+	"mygoproject/internal/model"
 )
 
 func GetServices(db *sql.DB) ([]model.Service, error) {

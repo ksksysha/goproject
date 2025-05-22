@@ -1,9 +1,0 @@
-<script>start("/Users/kseniacymbalova/programming/myproject/new_myproject/");</script>
-<script>onHasParentDirectory();</script>
-<script>addRow("assets","assets",1,256,"256 B",1747642890,"19.05.2025, 11:21:30");</script>
-<script>addRow("cmd","cmd",1,96,"96 B",1747642407,"19.05.2025, 11:13:27");</script>
-<script>addRow("internal","internal",1,224,"224 B",1747642407,"19.05.2025, 11:13:27");</script>
-<script>addRow("pkg","pkg",1,96,"96 B",1747642407,"19.05.2025, 11:13:27");</script>
-<script>addRow("templates","templates",1,448,"448 B",1747643099,"19.05.2025, 11:24:59");</script>
-<script>addRow("go.mod","go.mod",0,213,"213 B",1747643065,"19.05.2025, 11:24:25");</script>
-<script>addRow("go.sum","go.sum",0,835,"835 B",1747643065,"19.05.2025, 11:24:25");</script>

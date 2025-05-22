@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-	"myproject/internal/model"
+	"mygoproject/internal/model"
 
 	"golang.org/x/crypto/bcrypt"
 )

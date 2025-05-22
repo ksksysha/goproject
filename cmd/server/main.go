@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	"myproject/internal/config"
-	"myproject/internal/handler"
-	"myproject/internal/session"
+	"mygoproject/internal/config"
+	"mygoproject/internal/handler"
+	"mygoproject/internal/session"
 )
 
 func main() {

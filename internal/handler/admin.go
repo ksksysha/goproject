@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"myproject/internal/model"
-	"myproject/internal/repository"
-	"myproject/internal/session"
+	"mygoproject/internal/model"
+	"mygoproject/internal/repository"
+	"mygoproject/internal/session"
 )
 
 func AdminHandler(db *sql.DB) http.HandlerFunc {

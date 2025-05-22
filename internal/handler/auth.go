@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"myproject/internal/model"
-	"myproject/internal/repository"
-	"myproject/internal/session"
+	"mygoproject/internal/model"
+	"mygoproject/internal/repository"
+	"mygoproject/internal/session"
 )
 
 func LoginHandler(db *sql.DB) http.HandlerFunc {
@@ -34,7 +34,13 @@ func LoginHandler(db *sql.DB) http.HandlerFunc {
 
 		log.Printf("Успешная аутентификация пользователя %s с ролью %s", username, user.Role)
 
-		sess, _ := session.Store.Get(r, "session-name")
+		sess, err := session.Store.Get(r, "session-name")
+		if err != nil {
+			log.Printf("Ошибка получения сессии при входе: %v", err)
+			http.Error(w, "Ошибка сессии", http.StatusInternalServerError)
+			return
+		}
+
 		sess.Values["username"] = user.Username
 		sess.Values["role"] = user.Role
 		sess.Values[session.UserIDKey] = user.ID

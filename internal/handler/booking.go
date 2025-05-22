@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"time"
 
-	"myproject/internal/model"
-	"myproject/internal/repository"
-	"myproject/internal/session"
+	"mygoproject/internal/model"
+	"mygoproject/internal/repository"
+	"mygoproject/internal/session"
 )
 
 func BookServiceHandler(db *sql.DB) http.HandlerFunc {
@@ -47,7 +47,7 @@ func BookServiceHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// Парсим время из формата datetime-local (YYYY-MM-DDThh:mm)
+		// Преобразуем время из формата datetime-local в нужный формат
 		parsedTime, err := time.Parse("2006-01-02T15:04", bookingTime)
 		if err != nil {
 			log.Printf("Ошибка парсинга времени: %v", err)
@@ -55,16 +55,13 @@ func BookServiceHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// Форматируем время в нужный формат для хранения
-		formattedTime := parsedTime.Format("15:04, 02.01.2006")
-
 		log.Printf("Попытка создания записи: username=%s, service_id=%d, booking_time=%s",
-			username, serviceID, formattedTime)
+			username, serviceID, parsedTime.Format("15:04, 02.01.2006"))
 
 		booking := model.Booking{
 			Username:    username,
 			ServiceID:   serviceID,
-			BookingTime: formattedTime,
+			BookingTime: parsedTime.Format("15:04, 02.01.2006"),
 		}
 
 		err = repository.CreateBooking(db, booking)

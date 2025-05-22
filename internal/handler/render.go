@@ -2,8 +2,8 @@ package handler
 
 import (
 	"html/template"
-	"myproject/internal/model"
 	"net/http"
+	"mygoproject/internal/model"
 	"path/filepath"
 	"runtime"
 )

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"time"
 
-	"myproject/internal/model"
+	"mygoproject/internal/model"
 )
 
 func GetAllBookings(db *sql.DB) ([]model.Booking, error) {
@@ -54,7 +54,7 @@ func CreateBooking(db *sql.DB, booking model.Booking) error {
 		return err
 	}
 
-	// Парсим строку времени из формата "15:04, 02.01.2006" в time.Time
+	// Парсим строку времени обратно в time.Time
 	bookingTime, err := time.Parse("15:04, 02.01.2006", booking.BookingTime)
 	if err != nil {
 		return err

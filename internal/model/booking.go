@@ -2,6 +2,7 @@
 package model
 
 import (
+	"log"
 	"time"
 )
 
@@ -28,14 +29,11 @@ func (b *Booking) CalculateExpired() {
 		return
 	}
 
-	// Пробуем оба формата времени
-	bookingTime, err := time.Parse("2006-01-02 15:04:05", b.BookingTime)
+	bookingTime, err := time.Parse("15:04, 02.01.2006", b.BookingTime)
 	if err != nil {
-		bookingTime, err = time.Parse("15:04, 02.01.2006", b.BookingTime)
-		if err != nil {
-			b.IsExpired = false
-			return
-		}
+		log.Printf("Ошибка парсинга времени в CalculateExpired: %v", err)
+		b.IsExpired = false
+		return
 	}
 
 	b.IsExpired = bookingTime.Before(time.Now())
