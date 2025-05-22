@@ -18,13 +18,6 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
 	// Статические файлы
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(assetsDir))))
 
-	// Обработчики страниц
-	mux.HandleFunc("/", PageHandler)
-	mux.HandleFunc("/home", PageHandler)
-	mux.HandleFunc("/about", PageHandler)
-	mux.HandleFunc("/services", PageHandler)
-	mux.HandleFunc("/contacts", PageHandler)
-
 	// Обработчики действий
 	mux.HandleFunc("/login", LoginHandler(db))
 	mux.HandleFunc("/register", RegisterHandler(db))
@@ -40,4 +33,19 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
 
 	// Обработчик 404
 	mux.HandleFunc("/404", NotFoundHandler)
+
+	// Обработчики страниц (кроме корневого пути)
+	mux.HandleFunc("/home", PageHandler)
+	mux.HandleFunc("/about", PageHandler)
+	mux.HandleFunc("/services", PageHandler)
+	mux.HandleFunc("/contacts", PageHandler)
+
+	// Обработчик по умолчанию для всех необработанных запросов
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" && r.URL.Path != "/home" {
+			NotFoundHandler(w, r)
+			return
+		}
+		PageHandler(w, r)
+	})
 }

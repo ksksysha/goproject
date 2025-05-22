@@ -577,21 +577,23 @@ p a:hover {
 }
 
 /* Для больших цифр */
-.big-number {
-  font-size: 120px;  /* Уменьшили размер для балансировки */
+.container_n .big-number {
+  font-size: 120px;
   font-weight: bold;
-  color: #e74c3c; /* Красный цвет для цифр */
+  color: #444 !important; /* Серый цвет для цифр, как шапка сайта, с высоким приоритетом */
 }
 
 /* Стиль для разбитого сердца */
 .heart-broken {
   display: inline-block;
   margin: 0 15px;
-  width: 80px; /* Подогнали размер изображения */
-  height: 80px;
+  margin-top: 50px; /* Опускаем сердце ниже */
+  width: 180px; /* Увеличили размер изображения */
+  height: 180px;
   background: url('/assets/images/heart.png') no-repeat center center;
   background-size: contain; /* Подгоняем картинку под размер блока */
-  animation: heartbeat 1.5s ease-in-out infinite; /* Анимация пульсации */
+  animation: heartbeat 3s ease-in-out infinite; /* Увеличили время цикла анимации */
+  vertical-align: middle;
 }
 
 /* Текстовые элементы */
@@ -610,32 +612,85 @@ p {
 /* Стиль для кнопки */
 .container_n .button {
   display: inline-block;
-  padding: 12px 25px;
-  background-color: #3498db;
+  padding: 10px 20px;
+  background: #ff69b4; /* Розовый цвет для кнопки */
   color: #fff;
   text-decoration: none;
-  font-size: 18px;
-  border-radius: 30px;
-  transition: background-color 0.3s ease;
-  margin-top: 30px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 10px 5px;
+  transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
 }
 
 .container_n .button:hover {
-  background-color: #2980b9; /* При наведении темнеет */
+  background: #ff4786; /* Темно-розовый цвет при наведении */
+  transform: scale(1.05); /* Увеличиваем кнопку на 5% при наведении */
 }
 
 /* Анимация пульсации для сердца */
 @keyframes heartbeat {
   0%, 100% {
-      transform: scale(1);
+    transform: scale(1);
   }
   25% {
-      transform: scale(1.1);
+    transform: scale(1.1);
   }
   50% {
-      transform: scale(1);
+    transform: scale(1);
   }
   75% {
-      transform: scale(1.1);
+    transform: scale(1.1);
   }
+}
+
+/* Стили для страницы 404 */
+.heart-broken img {
+    width: 100px; /* Увеличиваем размер сердца */
+}
+.container_n .button {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #444;
+    color: #fff;
+    text-decoration: none;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 10px 5px;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+.container_n .button:hover {
+    background: #ff69b4;
+    color: #fff;
+    transform: scale(1.05);
+}
+
+/* Стили для страницы 404 */
+.error-numbers {
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.error-numbers .big-number {
+  font-size: 250px; /* Увеличили размер цифр */
+  font-weight: bold;
+  color: #444 !important;
+  line-height: 1;
+}
+
+.heart-broken {
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+  background: url('/assets/images/heart.png') no-repeat center center;
+  background-size: contain;
+  animation: heartbeat 3s ease-in-out infinite; /* Увеличили время цикла анимации */
+  vertical-align: middle;
 }
