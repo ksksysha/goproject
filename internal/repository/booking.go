@@ -54,7 +54,7 @@ func CreateBooking(db *sql.DB, booking model.Booking) error {
 		return err
 	}
 
-	// Парсим строку времени обратно в time.Time
+	// Парсим строку времени из формата "15:04, 02.01.2006" в time.Time
 	bookingTime, err := time.Parse("15:04, 02.01.2006", booking.BookingTime)
 	if err != nil {
 		return err

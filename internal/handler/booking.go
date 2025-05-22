@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"myproject/internal/model"
 	"myproject/internal/repository"
@@ -46,13 +47,24 @@ func BookServiceHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		log.Printf("Попытка создания записи: username=%s, service_id=%d, booking_time=%s", 
-			username, serviceID, bookingTime)
+		// Парсим время из формата datetime-local (YYYY-MM-DDThh:mm)
+		parsedTime, err := time.Parse("2006-01-02T15:04", bookingTime)
+		if err != nil {
+			log.Printf("Ошибка парсинга времени: %v", err)
+			http.Error(w, "Неверный формат времени записи", http.StatusBadRequest)
+			return
+		}
+
+		// Форматируем время в нужный формат для хранения
+		formattedTime := parsedTime.Format("15:04, 02.01.2006")
+
+		log.Printf("Попытка создания записи: username=%s, service_id=%d, booking_time=%s",
+			username, serviceID, formattedTime)
 
 		booking := model.Booking{
 			Username:    username,
 			ServiceID:   serviceID,
-			BookingTime: bookingTime,
+			BookingTime: formattedTime,
 		}
 
 		err = repository.CreateBooking(db, booking)
