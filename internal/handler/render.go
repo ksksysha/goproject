@@ -2,8 +2,9 @@ package handler
 
 import (
 	"html/template"
-	"net/http"
 	"mygoproject/internal/model"
+	templatefuncs "mygoproject/internal/template"
+	"net/http"
 	"path/filepath"
 	"runtime"
 )
@@ -23,13 +24,16 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, data *model.PageData, us
 	var tmplContent *template.Template
 	var err error
 
+	// Создаем новый шаблон с функциями-помощниками
+	tmplContent = template.New("").Funcs(templatefuncs.FuncMap)
+
 	if useLayout {
 		layoutPath := getTemplatePath("layout.html")
 		tmplPath := getTemplatePath(tmpl)
-		tmplContent, err = template.ParseFiles(layoutPath, tmplPath)
+		tmplContent, err = tmplContent.ParseFiles(layoutPath, tmplPath)
 	} else {
 		tmplPath := getTemplatePath(tmpl)
-		tmplContent, err = template.ParseFiles(tmplPath)
+		tmplContent, err = tmplContent.ParseFiles(tmplPath)
 	}
 
 	if err != nil {

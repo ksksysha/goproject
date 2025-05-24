@@ -123,3 +123,70 @@ func UpdateBookingStatus(db *sql.DB, bookingID int, status string) error {
 	_, err := db.Exec(query, status, bookingID)
 	return err
 }
+
+func GetPaginatedBookings(db *sql.DB, page, pageSize int, sortField, sortDirection string) ([]model.Booking, int, error) {
+	// Получаем общее количество записей
+	var totalRecords int
+	err := db.QueryRow("SELECT COUNT(*) FROM bookings").Scan(&totalRecords)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Вычисляем смещение
+	offset := (page - 1) * pageSize
+
+	// Определяем направление сортировки
+	direction := "DESC"
+	if sortDirection == "asc" {
+		direction = "ASC"
+	}
+
+	// Определяем поле сортировки
+	orderBy := "b.booking_time"
+	if sortField == "username" {
+		orderBy = "u.username"
+	} else if sortField == "service" {
+		orderBy = "s.name"
+	} else if sortField == "status" {
+		orderBy = "b.status"
+	}
+
+	query := `
+		SELECT b.id, b.service_id, b.booking_time, u.username, s.name as service_name, s.price, COALESCE(b.status, 'pending') as status
+		FROM bookings b
+		JOIN users u ON b.user_id = u.id
+		JOIN services s ON b.service_id = s.id
+		ORDER BY ` + orderBy + ` ` + direction + `
+		LIMIT $1 OFFSET $2`
+
+	rows, err := db.Query(query, pageSize, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	var bookings []model.Booking
+	for rows.Next() {
+		var b model.Booking
+		var serviceName string
+		var servicePrice float64
+		var bookingTime time.Time
+		if err := rows.Scan(&b.ID, &b.ServiceID, &bookingTime, &b.Username, &serviceName, &servicePrice, &b.Status); err != nil {
+			return nil, 0, err
+		}
+		b.Service = model.Service{
+			ID:    b.ServiceID,
+			Name:  serviceName,
+			Price: servicePrice,
+		}
+		b.BookingTime = bookingTime.Format("15:04, 02.01.2006")
+		b.CalculateExpired()
+		bookings = append(bookings, b)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return bookings, totalRecords, nil
+}

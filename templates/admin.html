@@ -93,6 +93,80 @@
         color: #004085;
         background-color: #cce5ff;
     }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+        gap: 10px;
+    }
+    
+    .pagination a {
+        padding: 8px 16px;
+        text-decoration: none;
+        color: #333;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+    
+    .pagination a:hover {
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+    
+    .pagination .active {
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .pagination .disabled {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+    
+    .pagination-info {
+        text-align: center;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+
+    .sort-header {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .sort-header:hover {
+        background-color: #f0f0f0;
+    }
+
+    .sort-header.active {
+        background-color: #e0e0e0;
+    }
+
+    .sort-header .sort-icon {
+        display: inline-block;
+        margin-left: 5px;
+    }
+
+    .sort-header .sort-icon::after {
+        content: "↕";
+        color: #999;
+    }
+
+    .sort-header.active.asc .sort-icon::after {
+        content: "↑";
+        color: #333;
+    }
+
+    .sort-header.active.desc .sort-icon::after {
+        content: "↓";
+        color: #333;
+    }
 </style>
 
 <h1>Админ-панель</h1>
@@ -127,29 +201,42 @@
 </div>
 
 <h2>Существующие записи</h2>
+
+<div class="pagination-info">
+    Показано записей {{len .Bookings}} из {{.Pagination.TotalRecords}}
+</div>
+
 <table>
-    <tr>
-        <th>Пользователь</th>
-        <th>Услуга</th>
-        <th>Время записи</th>
-        <th>Статус</th>
-        <th>Действия</th>
-    </tr>
+    <thead>
+        <tr>
+            <th class="sort-header {{if eq .Sort.Field "booking_time"}}active {{.Sort.Direction}}{{end}}"
+                onclick="sortTable('booking_time')">
+                Дата и время
+                <span class="sort-icon"></span>
+            </th>
+            <th class="sort-header {{if eq .Sort.Field "username"}}active {{.Sort.Direction}}{{end}}"
+                onclick="sortTable('username')">
+                Пользователь
+                <span class="sort-icon"></span>
+            </th>
+            <th class="sort-header {{if eq .Sort.Field "service"}}active {{.Sort.Direction}}{{end}}"
+                onclick="sortTable('service')">
+                Услуга
+                <span class="sort-icon"></span>
+            </th>
+            <th class="sort-header {{if eq .Sort.Field "status"}}active {{.Sort.Direction}}{{end}}"
+                onclick="sortTable('status')">
+                Статус
+                <span class="sort-icon"></span>
+            </th>
+            <th>Действия</th>
+        </tr>
+    </thead>
     {{range .Bookings}}
     <tr {{if .IsExpired}}class="expired"{{end}}>
+        <td>{{.BookingTime}}</td>
         <td>{{.Username}}</td>
         <td>{{.Service.Name}}</td>
-        <td>
-            <div class="booking-time">{{.BookingTime}}</div>
-            <div class="edit-form" id="edit-form-{{.ID}}">
-                <form method="POST" action="/admin/edit-booking" class="edit-booking-form">
-                    <input type="hidden" name="booking_id" value="{{.ID}}">
-                    <input type="datetime-local" name="new_booking_time" value="{{.BookingTime}}" required>
-                    <button type="submit" class="edit">Сохранить</button>
-                    <button type="button" onclick="toggleEditForm({{.ID}})" class="edit">Отмена</button>
-                </form>
-            </div>
-        </td>
         <td>
             <form method="POST" action="/admin/update-status" class="status-form">
                 <input type="hidden" name="booking_id" value="{{.ID}}">
@@ -172,6 +259,28 @@
     {{end}}
 </table>
 
+<div class="pagination">
+    {{if .Pagination.HasPrev}}
+        <a href="/admin?page={{subtract .Pagination.CurrentPage 1}}">&laquo; Предыдущая</a>
+    {{else}}
+        <a class="disabled">&laquo; Предыдущая</a>
+    {{end}}
+    
+    {{range $i := sequence 1 .Pagination.TotalPages}}
+        {{if eq $i $.Pagination.CurrentPage}}
+            <a class="active">{{$i}}</a>
+        {{else}}
+            <a href="/admin?page={{$i}}">{{$i}}</a>
+        {{end}}
+    {{end}}
+    
+    {{if .Pagination.HasNext}}
+        <a href="/admin?page={{add .Pagination.CurrentPage 1}}">Следующая &raquo;</a>
+    {{else}}
+        <a class="disabled">Следующая &raquo;</a>
+    {{end}}
+</div>
+
 <script>
 function toggleEditForm(bookingId) {
     const form = document.getElementById(`edit-form-${bookingId}`);
@@ -184,6 +293,23 @@ document.querySelectorAll('.status-select').forEach(select => {
         this.className = `status-select status-${this.value}`;
     });
 });
+
+function sortTable(field) {
+    const currentUrl = new URL(window.location.href);
+    const currentSort = currentUrl.searchParams.get('sort');
+    const currentDirection = currentUrl.searchParams.get('direction');
+    
+    let newDirection = 'asc';
+    if (currentSort === field && currentDirection === 'asc') {
+        newDirection = 'desc';
+    }
+    
+    currentUrl.searchParams.set('sort', field);
+    currentUrl.searchParams.set('direction', newDirection);
+    currentUrl.searchParams.set('page', '1'); // Сбрасываем на первую страницу при сортировке
+    
+    window.location.href = currentUrl.toString();
+}
 </script>
 
 <p><a href="/">На главную</a></p>

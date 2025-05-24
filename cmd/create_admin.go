@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"mygoproject/internal/database"
-	"mygoproject/internal/models"
+	"myproject/internal/database"
+	"myproject/internal/models"
 )
 
 func main() {

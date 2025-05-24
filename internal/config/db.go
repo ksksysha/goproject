@@ -9,8 +9,14 @@ import (
 
 func InitDB() *sql.DB {
 	log.Println("Инициализация подключения к базе данных...")
-	connStr := "host=localhost port=5432 user=postgres password=0000 dbname=myproject sslmode=disable"
-	db, err := sql.Open("postgres", connStr)
+
+	config := GetDBConfig()
+	user, password := GetDBCredentials()
+	if user == "" || password == "" {
+		log.Fatal("DB_USER или DB_PASSWORD не установлены в secrets.env или переменных окружения")
+	}
+
+	db, err := sql.Open("postgres", config.GetConnectionString(user, password))
 	if err != nil {
 		log.Fatalf("Ошибка подключения к базе данных: %v", err)
 	}

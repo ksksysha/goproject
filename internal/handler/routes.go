@@ -40,6 +40,13 @@ func RegisterRoutes(mux *http.ServeMux, db *sql.DB) {
 	mux.HandleFunc("/services", PageHandler)
 	mux.HandleFunc("/contacts", PageHandler)
 
+	// Обработчики страниц услуг
+	mux.HandleFunc("/services/nails", PageHandler)
+	mux.HandleFunc("/services/hair", PageHandler)
+	mux.HandleFunc("/services/lashes", PageHandler)
+	mux.HandleFunc("/services/brows", PageHandler)
+	mux.HandleFunc("/services/description/", PageHandler)
+
 	// Обработчик по умолчанию для всех необработанных запросов
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" && r.URL.Path != "/home" {

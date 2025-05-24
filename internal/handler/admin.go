@@ -34,8 +34,30 @@ func AdminHandler(db *sql.DB) http.HandlerFunc {
 
 		log.Printf("Доступ разрешен для администратора %s", username)
 
-		// Получаем все записи
-		bookings, err := repository.GetAllBookings(db)
+		// Получаем параметры пагинации
+		page := 1
+		pageSize := 10 // Количество записей на странице
+
+		if pageStr := r.URL.Query().Get("page"); pageStr != "" {
+			if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+				page = p
+			}
+		}
+
+		// Получаем параметры сортировки
+		sortField := r.URL.Query().Get("sort")
+		sortDirection := r.URL.Query().Get("direction")
+
+		// Если параметры сортировки не указаны, используем сортировку по умолчанию
+		if sortField == "" {
+			sortField = "booking_time"
+		}
+		if sortDirection == "" {
+			sortDirection = "desc"
+		}
+
+		// Получаем записи с пагинацией и сортировкой
+		bookings, totalRecords, err := repository.GetPaginatedBookings(db, page, pageSize, sortField, sortDirection)
 		if err != nil {
 			log.Printf("Ошибка получения записей: %v", err)
 			http.Error(w, "Ошибка получения записей", http.StatusInternalServerError)
@@ -58,13 +80,32 @@ func AdminHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
+		// Вычисляем данные пагинации
+		totalPages := (totalRecords + pageSize - 1) / pageSize
+		pagination := model.PaginationData{
+			CurrentPage:  page,
+			TotalPages:   totalPages,
+			PageSize:     pageSize,
+			TotalRecords: totalRecords,
+			HasNext:      page < totalPages,
+			HasPrev:      page > 1,
+		}
+
+		// Создаем данные сортировки
+		sort := model.SortData{
+			Field:     sortField,
+			Direction: sortDirection,
+		}
+
 		data := &model.PageData{
-			Title:    "Админ-панель - Салон красоты",
-			Username: username,
-			Role:     role,
-			Bookings: bookings,
-			Users:    users,
-			Services: services,
+			Title:      "Админ-панель - Салон красоты",
+			Username:   username,
+			Role:       role,
+			Bookings:   bookings,
+			Users:      users,
+			Services:   services,
+			Pagination: pagination,
+			Sort:       sort,
 		}
 		RenderTemplate(w, "admin.html", data, true)
 	}

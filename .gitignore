@@ -45,3 +45,8 @@ Thumbs.db
 
 # Ada Library Information
 *.ali
+
+# Environment variables
+.env
+*.env
+!.env.example

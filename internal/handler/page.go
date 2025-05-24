@@ -30,9 +30,23 @@ func PageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получаем имя файла шаблона
-	pageFile := strings.TrimPrefix(page, "/") + ".html"
-	if !strings.HasSuffix(pageFile, ".html") {
-		pageFile = pageFile + ".html"
+	pageFile := strings.TrimPrefix(page, "/")
+	if strings.HasPrefix(pageFile, "services/description/") {
+		parts := strings.Split(pageFile, "/")
+		if len(parts) >= 3 {
+			pageFile = filepath.Join("services", "description", parts[2]) + ".html"
+		} else {
+			NotFoundHandler(w, r)
+			return
+		}
+	} else {
+		parts := strings.Split(pageFile, "/")
+		if len(parts) > 1 {
+			pageFile = filepath.Join(parts...)
+		}
+		if !strings.HasSuffix(pageFile, ".html") {
+			pageFile = pageFile + ".html"
+		}
 	}
 
 	// Получаем имя страницы для заголовка
@@ -40,6 +54,20 @@ func PageHandler(w http.ResponseWriter, r *http.Request) {
 	title := strings.Title(pageName)
 	if pageName == "home" {
 		title = "Главная"
+	} else if strings.HasPrefix(page, "/services/") {
+		parts := strings.Split(strings.TrimPrefix(page, "/services/"), "/")
+		if len(parts) > 0 {
+			switch parts[0] {
+			case "nails":
+				title = "Ногтевой сервис"
+			case "hair":
+				title = "Волосы"
+			case "lashes":
+				title = "Ресницы"
+			case "brows":
+				title = "Брови"
+			}
+		}
 	}
 
 	// Получаем данные сессии
