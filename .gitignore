@@ -42,6 +42,9 @@ Thumbs.db
 
 # Go
 *.o
+server
+test_hash
+create_admin
 
 # Ada Library Information
 *.ali
